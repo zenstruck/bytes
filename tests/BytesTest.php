@@ -148,4 +148,12 @@ final class BytesTest extends TestCase
         $this->assertSame(11, Bytes::parse(5)->add(6)->value());
         $this->assertSame(1, Bytes::parse(6)->subtract(5)->value());
     }
+
+    /**
+     * @test
+     */
+    public function json_serialize(): void
+    {
+        $this->assertSame('{"foo":11}', \json_encode(['foo' => new Bytes(11)]));
+    }
 }

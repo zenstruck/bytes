@@ -16,7 +16,7 @@ namespace Zenstruck;
  *
  * @immutable
  */
-final class Bytes implements \Stringable
+final class Bytes implements \Stringable, \JsonSerializable
 {
     private const DECIMAL = 1000;
     private const BINARY = 1024;
@@ -156,6 +156,11 @@ final class Bytes implements \Stringable
     public function isGreaterThanOrEqualTo(string|int|float|self $what): bool
     {
         return $this->value >= self::parse($what)->value;
+    }
+
+    public function jsonSerialize(): int
+    {
+        return $this->value;
     }
 
     private static function toBytes(float $value, string $units): int
