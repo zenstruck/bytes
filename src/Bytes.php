@@ -87,7 +87,7 @@ final class Bytes implements \Stringable
         }
 
         if (\is_numeric($value)) {
-            return new self((int) $value);
+            return new self((int) \ceil((float) $value));
         }
 
         if (!\preg_match('#^(-?[\d,]+(.[\d,]+)?)([\s\-_]+)?(.+)$#', \trim($value), $matches)) {
@@ -118,17 +118,48 @@ final class Bytes implements \Stringable
         return $clone;
     }
 
+    public function isEqualTo(string|int|float|self $what): bool
+    {
+        return $this->value === self::parse($what)->value;
+    }
+
+    public function isLessThan(string|int|float|self $what): bool
+    {
+        return $this->value < self::parse($what)->value;
+    }
+
+    public function isLessThanOrEqualTo(string|int|float|self $what): bool
+    {
+        return $this->value <= self::parse($what)->value;
+    }
+
+    public function isGreaterThan(string|int|float|self $what): bool
+    {
+        return $this->value > self::parse($what)->value;
+    }
+
+    public function isGreaterThanOrEqualTo(string|int|float|self $what): bool
+    {
+        return $this->value >= self::parse($what)->value;
+    }
+
     private static function toBytes(float $value, string $units): int
     {
-        $lower = \mb_strtolower($units);
-        $units = self::BINARY_UNITS[$lower] ?? self::DECIMAL_UNITS[$lower] ?? self::ALTERNATE_MAP[$lower] ?? throw new \InvalidArgumentException(\sprintf('"%s" is an invalid informational unit. Valid units: %s.', $units, \implode(', ', \array_merge(self::DECIMAL_UNITS, self::BINARY_UNITS))));
+        $units = self::normalize($units);
 
         if ('B' === $units) {
-            return (int) $value;
+            return (int) \ceil($value);
         }
 
         [$multiplier, $system] = self::UNIT_MAP[$units];
 
         return (int) \ceil($value * $system ** $multiplier);
+    }
+
+    private static function normalize(string $units): string
+    {
+        $lower = \mb_strtolower($units);
+
+        return self::BINARY_UNITS[$lower] ?? self::DECIMAL_UNITS[$lower] ?? self::ALTERNATE_MAP[$lower] ?? throw new \InvalidArgumentException(\sprintf('"%s" is an invalid informational unit. Valid units: %s.', $units, \implode(', ', \array_merge(self::DECIMAL_UNITS, self::BINARY_UNITS))));
     }
 }

@@ -32,13 +32,16 @@ final class BytesTest extends TestCase
     {
         yield ['10', 10];
         yield [10, 10];
+        yield [0, 0];
         yield [new Bytes(10), 10];
-        yield [10.9, 10];
-        yield ['10.9', 10];
-        yield ['-10.9', -10];
+        yield [10.9, 11];
+        yield [10.1, 11];
+        yield ['10.9', 11];
         yield ['10b', 10];
         yield ['10  b', 10];
         yield ['10  B  ', 10];
+        yield ['10.2  b', 11];
+        yield ['10.9  B  ', 11];
         yield ['1000  B  ', 1000];
         yield ['1,000  B  ', 1000];
         yield ['1,000,000  B  ', 1000000];
@@ -72,6 +75,7 @@ final class BytesTest extends TestCase
     public static function toStringProvider(): iterable
     {
         yield [17, '17 B'];
+        yield [0, '0 B'];
         yield [999, '999 B'];
         yield [1000, '1 kB'];
         yield [17000, '17 kB'];
@@ -116,5 +120,23 @@ final class BytesTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         Bytes::parse('42 foo');
+    }
+
+    /**
+     * @test
+     */
+    public function comparison(): void
+    {
+        $this->assertTrue(Bytes::parse(5)->isEqualTo(5));
+        $this->assertTrue(Bytes::parse(5)->isLessThan(6));
+        $this->assertTrue(Bytes::parse(5)->isLessThanOrEqualTo(6));
+        $this->assertTrue(Bytes::parse(5)->isGreaterThan(4));
+        $this->assertTrue(Bytes::parse(5)->isGreaterThanOrEqualTo(4));
+
+        $this->assertFalse(Bytes::parse(5)->isEqualTo(6));
+        $this->assertFalse(Bytes::parse(5)->isLessThan(4));
+        $this->assertFalse(Bytes::parse(5)->isLessThanOrEqualTo(4));
+        $this->assertFalse(Bytes::parse(5)->isGreaterThan(5));
+        $this->assertFalse(Bytes::parse(5)->isGreaterThanOrEqualTo(6));
     }
 }
