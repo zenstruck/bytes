@@ -68,16 +68,7 @@ final class Bytes implements \Stringable
 
     public function __toString(): string
     {
-        $i = 0;
-        $units = \array_values(self::DECIMAL === $this->system ? self::DECIMAL_UNITS : self::BINARY_UNITS);
-        $quantity = (float) $this->value;
-
-        while (($quantity / $this->system) >= 1 && $i < (\count($units) - 1)) {
-            $quantity /= $this->system;
-            ++$i;
-        }
-
-        return \sprintf($quantity === \floor($quantity) ? '%d %s' : '%.2f %s', $quantity, $units[$i]);
+        return $this->humanize();
     }
 
     public static function parse(string|int|float|self $value): self
@@ -100,6 +91,20 @@ final class Bytes implements \Stringable
     public function value(): int
     {
         return $this->value;
+    }
+
+    public function humanize(): string
+    {
+        $i = 0;
+        $units = \array_values(self::DECIMAL === $this->system ? self::DECIMAL_UNITS : self::BINARY_UNITS);
+        $quantity = (float) $this->value;
+
+        while (($quantity / $this->system) >= 1 && $i < (\count($units) - 1)) {
+            $quantity /= $this->system;
+            ++$i;
+        }
+
+        return \sprintf($quantity === \floor($quantity) ? '%d %s' : '%.2f %s', $quantity, $units[$i]);
     }
 
     public function asBinary(): self
