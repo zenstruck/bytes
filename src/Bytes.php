@@ -118,6 +118,16 @@ final class Bytes implements \Stringable
         return $clone;
     }
 
+    public function add(string|int|float|self $what): self
+    {
+        return new self($this->value + self::parse($what)->value);
+    }
+
+    public function subtract(string|int|float|self $what): self
+    {
+        return new self($this->value - self::parse($what)->value);
+    }
+
     public function isEqualTo(string|int|float|self $what): bool
     {
         return $this->value === self::parse($what)->value;

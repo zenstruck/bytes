@@ -139,4 +139,13 @@ final class BytesTest extends TestCase
         $this->assertFalse(Bytes::parse(5)->isGreaterThan(5));
         $this->assertFalse(Bytes::parse(5)->isGreaterThanOrEqualTo(6));
     }
+
+    /**
+     * @test
+     */
+    public function arithmetic(): void
+    {
+        $this->assertSame(11, Bytes::parse(5)->add(6)->value());
+        $this->assertSame(1, Bytes::parse(6)->subtract(5)->value());
+    }
 }
