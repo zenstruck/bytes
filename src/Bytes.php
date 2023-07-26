@@ -59,8 +59,10 @@ final class Bytes implements \Stringable, \JsonSerializable
         'y' => 'YB',
         'yi' => 'YiB',
     ];
+    private const AUTO = '__auto__';
 
     private int $system = self::DECIMAL;
+    private string $units = self::AUTO;
 
     public function __construct(private int $value)
     {
@@ -68,7 +70,7 @@ final class Bytes implements \Stringable, \JsonSerializable
 
     public function __toString(): string
     {
-        return $this->humanize();
+        return $this->format();
     }
 
     public static function parse(string|int|float|self $value): self
@@ -93,18 +95,28 @@ final class Bytes implements \Stringable, \JsonSerializable
         return $this->value;
     }
 
-    public function humanize(): string
+    public function humanize(): self
     {
-        $i = 0;
-        $units = \array_values(self::DECIMAL === $this->system ? self::DECIMAL_UNITS : self::BINARY_UNITS);
-        $quantity = (float) $this->value;
+        $clone = clone $this;
+        $clone->units = self::AUTO;
 
-        while (($quantity / $this->system) >= 1 && $i < (\count($units) - 1)) {
-            $quantity /= $this->system;
-            ++$i;
+        return $clone;
+    }
+
+    /**
+     * @param string|null $template The sprintf template to use.
+     *                              The first argument is the numeric quantity, the second is the unit.
+     *                              For "whole" numbers, defaults to "%d %s", otherwise "%.2f %s".
+     */
+    public function format(?string $template = null): string
+    {
+        [$quantity, $units] = self::AUTO === $this->units ? $this->autoConvert() : $this->convert();
+
+        if ($template) {
+            return \sprintf($template, $quantity, $units);
         }
 
-        return \sprintf($quantity === \floor($quantity) ? '%d %s' : '%.2f %s', $quantity, $units[$i]);
+        return \sprintf($quantity === \floor($quantity) ? '%d %s' : '%.2f %s', $quantity, $units);
     }
 
     public function asBinary(): self
@@ -119,6 +131,16 @@ final class Bytes implements \Stringable, \JsonSerializable
     {
         $clone = clone $this;
         $clone->system = self::DECIMAL;
+
+        return $clone;
+    }
+
+    public function to(string $units): self
+    {
+        $units = self::normalize($units);
+
+        $clone = clone $this;
+        $clone->units = $units;
 
         return $clone;
     }
@@ -161,6 +183,37 @@ final class Bytes implements \Stringable, \JsonSerializable
     public function jsonSerialize(): int
     {
         return $this->value;
+    }
+
+    /**
+     * @return array{float,string}
+     */
+    private function convert(): array
+    {
+        if ('B' === $this->units) {
+            return [(float) $this->value, 'B'];
+        }
+
+        [$multiplier, $system] = self::UNIT_MAP[$this->units];
+
+        return [$this->value / $system ** $multiplier, $this->units];
+    }
+
+    /**
+     * @return array{float,string}
+     */
+    private function autoConvert(): array
+    {
+        $i = 0;
+        $units = \array_values(self::DECIMAL === $this->system ? self::DECIMAL_UNITS : self::BINARY_UNITS);
+        $quantity = (float) $this->value;
+
+        while (($quantity / $this->system) >= 1 && $i < (\count($units) - 1)) {
+            $quantity /= $this->system;
+            ++$i;
+        }
+
+        return [(float) $quantity, $units[$i]];
     }
 
     private static function toBytes(float $value, string $units): int

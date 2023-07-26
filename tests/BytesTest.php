@@ -81,6 +81,10 @@ final class BytesTest extends TestCase
         yield [17000, '17 kB'];
         yield [1420000000000, '1.42 TB'];
         yield [1000000000000, '1 TB'];
+        yield ['17 kB', '17 kB'];
+        yield ['17.45 kB', '17.45 kB'];
+        yield ['17.4567 kB', '17.46 kB'];
+        yield ['17 KiB', '17.41 kB'];
 
         yield [17, '17 B', true];
         yield [999, '999 B', true];
@@ -155,5 +159,55 @@ final class BytesTest extends TestCase
     public function json_serialize(): void
     {
         $this->assertSame('{"foo":11}', \json_encode(['foo' => new Bytes(11)]));
+    }
+
+    /**
+     * @test
+     * @dataProvider convertToProvider
+     */
+    public function convert_to($value, $units, $expected): void
+    {
+        $bytes = Bytes::parse($value);
+        $converted = $bytes->to($units);
+
+        $this->assertSame($bytes->value(), $converted->value());
+        $this->assertSame($expected, (string) $converted);
+    }
+
+    public static function convertToProvider(): iterable
+    {
+        yield [100000, 'B', '100000 B'];
+        yield [100, 'kB', '0.10 kB'];
+        yield ['1.29 TiB', 'GB', '1418.37 GB'];
+    }
+
+    /**
+     * @test
+     */
+    public function convert_back_to_humanize(): void
+    {
+        $this->assertSame('1.42 TB', (string) Bytes::parse(1420000000000)->to('GiB')->humanize());
+    }
+
+    /**
+     * @test
+     */
+    public function invalid_convert_to(): void
+    {
+        $bytes = new Bytes(1000);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $bytes->to('invalid');
+    }
+
+    /**
+     * @test
+     */
+    public function custom_formatter(): void
+    {
+        $bytes = Bytes::parse('1418.37 GB');
+
+        $this->assertSame('1.4184 TB', $bytes->format('%.4f %s'));
     }
 }
