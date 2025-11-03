@@ -1,0 +1,19 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^@readonly property Zenstruck\\Bytes\:\:\$system is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyByPhpDocAssignNotInConstructor
+			count: 2
+			path: src/Bytes.php
+
+		-
+			message: '#^@readonly property Zenstruck\\Bytes\:\:\$units is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyByPhpDocAssignNotInConstructor
+			count: 2
+			path: src/Bytes.php
+
+		-
+			message: '#^@readonly property cannot have a default value\.$#'
+			identifier: property.readOnlyByPhpDocDefaultValue
+			count: 2
+			path: src/Bytes.php
