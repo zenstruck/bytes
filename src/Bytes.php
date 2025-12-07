@@ -13,8 +13,6 @@ namespace Zenstruck;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
- *
- * @immutable
  */
 final class Bytes implements \Stringable, \JsonSerializable
 {
